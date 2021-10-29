@@ -1,0 +1,13 @@
+; Copyright 2021 Robin Maasjosthusmann. All rights reserved.
+; Use of this source code is governed by a BSD-style
+; license that can be found in the LICENSE file.
+
+[flake8]
+select = BLK,C,E,F,W # black (B), pyflake (F), pycodestyle(WE), mccabe(C), import-order(I)
+max-complexity = 12
+line-length = 100
+ignore = W503, E501, BLK100, W605
+import-order-style = google
+docstring-convention=numpy
+doctests = True
+exclude= noxfile.py
