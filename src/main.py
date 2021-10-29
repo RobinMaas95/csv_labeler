@@ -9,6 +9,8 @@ A simple tool for labeling your csv files
 
 import ast
 import configparser
+from distutils import util
+
 import os
 import textwrap
 from pathlib import Path
@@ -53,10 +55,7 @@ def get_csv_filepath() -> Path:
         Path to csv file
     """
     while True:
-        csv_filepath = Path(
-            r"/Users/robin/Developer/dkb2homebank/Homebank.csv"
-        )  # TODO: reenter input
-        # Path(input("Please enter the path of the csv file: "))
+        csv_filepath = Path(input("Please enter the path of the csv file: "))
         if csv_filepath.is_file():
             break
         print("No valid file found")
@@ -73,8 +72,7 @@ def get_csv_seperator() -> str:
     str
         CSV file seperator
     """
-    seperator = ";"
-    # input("What is the seperator of the csv file?: ")
+    seperator = input("What is the seperator of the csv file?: ")
     return seperator
 
 
@@ -87,8 +85,7 @@ def get_csv_overwrite() -> bool:
     bool
         True if the current one, False if a new one
     """
-    # overwrite = confirm_prompt("Append labels in the current file")
-    overwrite = True
+    overwrite = confirm_prompt("Append labels in the current file")
     return overwrite
 
 
@@ -213,17 +210,28 @@ def main():
     """
     config = configparser.ConfigParser()
     config.read("config.ini")
-    (
-        csv_filepath,
-        seperator,
-        _,
-    ) = get_setup_input()  # TODO: Handling overwrite
-    print(csv_filepath)
+    if bool(util.strtobool(config["development"]["testmode"])):
+        # Development behavior, set values inside of config.ini
+        csv_filepath = config["development"]["csv_file"]
+        seperator = config["development"]["seperator"]
+        _ = bool(util.strtobool(config["development"]["overwrite"]))
+    else:
+        # Normal behavior
+        (
+            csv_filepath,
+            seperator,
+            _,
+        ) = get_setup_input()
+
     df = pd.read_csv(csv_filepath, sep=seperator)
 
+    if bool(util.strtobool(config["development"]["testmode"])):
+        # Development behavior, set values inside of config.ini
+        skip_labels = bool(util.strtobool(config["development"]["skip_labels"]))
+    else:
+        # Normal behavior
     skip_labels = handle_existing_labels(df, config["csv"]["label_column"])
     save_changes = True
-    wrapper = textwrap.TextWrapper(width=100)
 
     for index, row in df.iterrows():
         try:
