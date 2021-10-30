@@ -222,7 +222,7 @@ def main():
         # Normal behavior
         csv_filepath = get_csv_filepath()
 
-    df = pd.read_csv(csv_filepath, sep=config["development"]["sep"])
+    df = pd.read_csv(csv_filepath, sep=config["csv"]["sep"])
 
     if bool(util.strtobool(config["development"]["testmode"])):
         # Development behavior, set values inside of config.ini
