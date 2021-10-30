@@ -245,7 +245,7 @@ def main():
 
     if save_changes:
         df.to_csv(  # pylint: disable = no-member
-            csv_filepath, sep=config["development"]["sep"], index=False
+            csv_filepath, sep=config["csv"]["sep"], index=False
         )
 
 
