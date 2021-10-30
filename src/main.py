@@ -244,12 +244,10 @@ def main():
             break
 
     if save_changes:
-        print("Will save changes")
         df.to_csv(  # pylint: disable = no-member
             csv_filepath, sep=config["development"]["sep"], index=False
         )
-    else:
-        print("drop changes")
+
 
 
 def get_classification(categories: list) -> str:
