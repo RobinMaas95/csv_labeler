@@ -10,6 +10,9 @@ from src.main import highlight_keywords
 
 
 def test_no_matching_keywords():
+    """
+    Test for no matching keyword
+    """
     sentence = "This is my test sentence without keywords"
     highlighted_sentence = highlight_keywords(sentence, [])
 
@@ -17,6 +20,9 @@ def test_no_matching_keywords():
 
 
 def test_one_matching_keywords():
+    """
+    Test for exactly one matching keyword
+    """
     sentence = "This is my test sentence with a keyword"
     expected_sentence = (
         "This\x1b[0m is\x1b[0m my\x1b[0m test\x1b[0m sentence"
@@ -27,6 +33,9 @@ def test_one_matching_keywords():
 
 
 def test_multiple_matching_keywords():
+    """
+    Test for multiple matching keywords
+    """
     sentence = "This is my test sentence with multiple keywords"
     expected_sentence = (
         "This\x1b[0m is \x1b[30m\x1b[43mmy\x1b[0m test"
@@ -38,6 +47,9 @@ def test_multiple_matching_keywords():
 
 
 def test_matching_keyword_start_sentence():
+    """
+    Test for a matching keyword at the start of the sentence
+    """
     sentence = "This is my test sentence with multiple keywords"
     expected_sentence = (
         "\x1b[30m\x1b[43mThis\x1b[0m is\x1b[0m my\x1b[0m test\x1b[0m sentence\x1b[0m"
@@ -48,6 +60,9 @@ def test_matching_keyword_start_sentence():
 
 
 def test_matching_keyword_end_sentence():
+    """
+    Test for a matching keyword at the end of the sentence
+    """
     sentence = "This is my test sentence with multiple keywords"
     expected_sentence = (
         "This\x1b[0m is\x1b[0m my\x1b[0m test\x1b[0m sentence\x1b[0m with\x1b[0m"
