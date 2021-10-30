@@ -249,7 +249,6 @@ def main():
         )
 
 
-
 def get_classification(categories: list) -> str:
     """
     Displays the possible label classes and validates the userinput (must be a valid labelclass or a
@@ -272,9 +271,10 @@ def get_classification(categories: list) -> str:
     """
     lower_category_list = [x.lower() for x in categories]
     category_integer_list = list(range(1, len(lower_category_list) + 1))
+    category_hex_list = list([hex(n) for n in category_integer_list])
     print("\nThe following categories exist: ")
     for idx, category in enumerate(categories):
-        print(f"\t{idx+1})  {category}")
+        print(f"\t{idx+1:x})  {category}")
 
     print("\n\tq) Cancel Input")
 
@@ -288,8 +288,8 @@ def get_classification(categories: list) -> str:
             return selected_category
         if selected_category.lower() == "cancel input" or selected_category == "q":
             raise KeyboardInterrupt("User canceled the input")
-        if int(selected_category) in category_integer_list:
-            selected_category = categories[int(selected_category) - 1]
+        if hex(int(selected_category, 16)) in category_hex_list:
+            selected_category = categories[int(selected_category, 16) - 1]
             clear_console()
             return selected_category
 
