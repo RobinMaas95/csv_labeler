@@ -16,7 +16,6 @@ import textwrap
 from pathlib import Path
 from typing import Tuple
 
-import numpy as np
 import pandas as pd
 from colorama import Back, Fore, Style
 
@@ -153,11 +152,80 @@ def handle_existing_labels(df: pd.DataFrame, label_column: str) -> bool:
     return skip_labels
 
 
+def print_relevant_columns(row: pd.Series, config: configparser.ConfigParser) -> None:
+    """
+    Prints all relevant columns for the classification with the corresponding value. Does
+    some preprecessing for string values (removes linebreaks, splits into multiple lines if
+    the text is to long...).
+
+    Parameters
+    ----------
+    row : pd.Series
+        Row of the csv file/dataframe. Must contain all relevant columns
+    config : configparser.ConfigParser
+        ConfigParser with all information from the config.ini
+    """
+    clear_console()
+    wrapper = textwrap.TextWrapper(
+        width=int(config["general"]["line_length"])
+    )  # Needed for formatting outputs
+
+    # If not at least one relevant column is defined, use all columns except of label_column
+    relevant_columns = ast.literal_eval(config["csv"]["relevant_columns"])
+    if len(relevant_columns) == 0:
+        relevant_columns = list(
+            i for i in list(row.index) if i.lower() != config["csv"]["label_column"]
+        )
+
+    # Use the length of the longest column name to determine the width of the "name" column.
+    # The width of the "value" column is the remaining space of the {line_width} defined in the
+    # config.ini minus the width of the "name" column and the vale of {name_value_seperator_width}
+    # (also defined in config.ini.)
+    name_column_width = len(max(relevant_columns, key=len))
+    value_column_width = int(config["general"]["line_length"]) - name_column_width
+    line_length = int(config["general"]["name_value_seperator_width"])
+
+    for name, value in row.items():
+        if name.lower() in [x.lower() for x in relevant_columns]:
+            # Check for empty row -> no further processing needed if empty
+            if pd.isna(value):
+                print_value = "None"
+            else:
+                # Cleanup text & highlight keywords (only in strings)
+                if isinstance(value, str):
+                    print_value = " ".join(value.replace("\\", "").split())
+                    print_value = highlight_keywords(
+                        print_value,
+                        ast.literal_eval(config["classification"]["keywords"]),
+                        config["highlighting"]["foreground"],
+                        config["highlighting"]["background"],
+                    )
+                else:
+                    print_value = value
+
+            # Print column
+            # If column contains text, split it into smaller parts to fit inside default terminals
+            if isinstance(value, str):
+                line_list = wrapper.wrap(text=print_value)
+                print(
+                    f"{name:{name_column_width}}:"
+                    f'{"":{line_length}}{line_list[0]:{value_column_width}}'
+                )
+                for element in line_list[1:]:
+                    print(
+                        f'{"":{name_column_width}} {"":{line_length}}{element:{value_column_width}}'
+                    )
+            else:
+                print(
+                    f"{name:{name_column_width}}:"
+                    f'{"":{line_length}}{str(print_value):{value_column_width}}'
+                )
+
+
 def label_row(
     row: pd.Series,
     skip_labels: bool,
     config: configparser.ConfigParser,
-    wrapper: textwrap.TextWrapper,
 ) -> str:
     """
     Prints the relevant columns of the passed row to the terminal and asks the user for
@@ -171,8 +239,6 @@ def label_row(
         Should rows which already have a label be skipped?
     config : configparser.ConfigParser
         ConfigParser with all information from the config.ini
-    wrapper : textwrap.TextWrapper
-        Wrapper object to ensure that the output of the column content is wrapped correctly
 
     Returns
     -------
@@ -181,24 +247,7 @@ def label_row(
     """
     if skip_labels and not pd.isna(row[config["csv"]["label_column"]]):
         return row[config["csv"]["label_column"]]
-
-    clear_console()
-    info = "None" if np.isnan(row["info"]) else row["info"]
-    print("Info:\t", info)
-    print("Payee:\t", row["payee"])
-    memo = " ".join(row["memo"].replace("\\", "").split())
-    memo = highlight_keywords(
-        memo,
-        ast.literal_eval(config["classification"]["keywords"]),
-        config["highlighting"]["foreground"],
-        config["highlighting"]["background"],
-    )
-    line_list = wrapper.wrap(text=memo)
-    print("Memo:\t", line_list[0])
-    for element in line_list[1:]:
-        print("\t", element)
-    print("Amount:\t", row["amount"])
-
+    print_relevant_columns(row, config)
     return get_classification(ast.literal_eval(config["classification"]["labels"]))
 
 
@@ -230,14 +279,14 @@ def main():
         skip_labels = bool(util.strtobool(config["development"]["skip_labels"]))
     else:
         # Normal behavior
-    skip_labels = handle_existing_labels(df, config["csv"]["label_column"])
+        skip_labels = handle_existing_labels(df, config["csv"]["label_column"])
     save_changes = True
 
     for index, row in df.iterrows():
         try:
             df.loc[  # pylint: disable = no-member
                 index, config["csv"]["label_column"]
-            ] = label_row(row, skip_labels, config, wrapper)
+            ] = label_row(row, skip_labels, config)
         except KeyboardInterrupt:
             save_changes = confirm_prompt(
                 "\nInput was canceled, should the labels created so far be saved?"
