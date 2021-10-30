@@ -14,7 +14,6 @@ from distutils import util
 import os
 import textwrap
 from pathlib import Path
-from typing import Tuple
 
 import pandas as pd
 from colorama import Back, Fore, Style
@@ -60,49 +59,6 @@ def get_csv_filepath() -> Path:
         print("No valid file found")
 
     return csv_filepath
-
-
-def get_csv_seperator() -> str:
-    """
-    Asks the user for the csv file seperator
-
-    Returns
-    -------
-    str
-        CSV file seperator
-    """
-    seperator = input("What is the seperator of the csv file?: ")
-    return seperator
-
-
-def get_csv_overwrite() -> bool:
-    """
-    Asks the user if the label current file should be edited or a new one should be created
-
-    Returns
-    -------
-    bool
-        True if the current one, False if a new one
-    """
-    overwrite = confirm_prompt("Append labels in the current file")
-    return overwrite
-
-
-def get_setup_input() -> Tuple[Path, str, bool]:
-    """
-    Asks the user for the csv file path, the seperator and if the current file should be edited
-    or a new on should be created.
-
-    Returns
-    -------
-    Tuple[Path, str, bool]
-        Answers from the user
-    """
-    file_path = get_csv_filepath()
-    seperator = get_csv_seperator()
-    overwrite = get_csv_overwrite()
-
-    return file_path, seperator, overwrite
 
 
 def detect_labels(df: pd.DataFrame, label_column: str) -> bool:
@@ -262,17 +218,11 @@ def main():
     if bool(util.strtobool(config["development"]["testmode"])):
         # Development behavior, set values inside of config.ini
         csv_filepath = config["development"]["csv_file"]
-        seperator = config["development"]["seperator"]
-        _ = bool(util.strtobool(config["development"]["overwrite"]))
     else:
         # Normal behavior
-        (
-            csv_filepath,
-            seperator,
-            _,
-        ) = get_setup_input()
+        csv_filepath = get_csv_filepath()
 
-    df = pd.read_csv(csv_filepath, sep=seperator)
+    df = pd.read_csv(csv_filepath, sep=config["development"]["sep"])
 
     if bool(util.strtobool(config["development"]["testmode"])):
         # Development behavior, set values inside of config.ini
@@ -296,7 +246,7 @@ def main():
     if save_changes:
         print("Will save changes")
         df.to_csv(  # pylint: disable = no-member
-            csv_filepath, sep=seperator, index=False
+            csv_filepath, sep=config["development"]["sep"], index=False
         )
     else:
         print("drop changes")
