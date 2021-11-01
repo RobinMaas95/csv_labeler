@@ -271,7 +271,7 @@ def get_classification(categories: list) -> str:
     """
     lower_category_list = [x.lower() for x in categories]
     category_integer_list = list(range(1, len(lower_category_list) + 1))
-    category_hex_list = list([hex(n) for n in category_integer_list])
+    category_hex_list = list(hex(n) for n in category_integer_list)
     print("\nThe following categories exist: ")
     for idx, category in enumerate(categories):
         print(f"\t{idx+1:x})  {category}")
@@ -343,6 +343,12 @@ def highlight_keywords(
                 )
             else:
                 text = text.replace(f" {word}", Style.RESET_ALL + f" {word}")
+
+        # Add highlight end tag if the text only consists out of one and it is a keyword
+        if len(text.split(" ")) == 1:
+            only_word = text.split(" ")[0].lower()
+            if only_word.endswith(tuple(x.lower() for x in keywords)):
+                text += Style.RESET_ALL
 
     return text
 
