@@ -275,9 +275,10 @@ def get_classification(categories: list) -> str:
     category_hex_list = list(hex(n) for n in category_integer_list)
     print("\nThe following categories exist: ")
     for idx, category in enumerate(categories):
-        print(f"\t{idx+1:x})  {category}")
+        print(f"\t{idx+1:x})\t{category}")
 
-    print("\n\tq) Cancel Input")
+    print("\n\tu)\tUmbuchung")
+    print("\tq)\tCancel Input")
 
     while True:
         selected_category = input(
