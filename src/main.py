@@ -345,6 +345,21 @@ def resolve_correct_label_name(label: str, label_list: list) -> str:
 
 
 def get_partial_match(substring: str, label_list: list) -> list:
+    """
+    Validates if there is a partial match of the substring in the label_list
+
+    Parameters
+    ----------
+    substring : str
+        Substring to be matched
+    label_list : list
+        List with all labels
+
+    Returns
+    -------
+    list
+        Lists with all labels that were matched
+    """
     regex_pattern = re.compile(f".*{substring}*", re.IGNORECASE)
     match_list = list(filter(regex_pattern.match, label_list))
 
