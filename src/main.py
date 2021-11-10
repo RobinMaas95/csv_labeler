@@ -40,7 +40,7 @@ def confirm_prompt(question: str) -> bool:
     while reply not in valid_inputs:
         if reply is not None:
             print('Please enter a valid value ("Y/y" or Enter for Yes, "N/n" for No)')
-        reply = input(f"{question} (Y/n): ").lower()
+        reply = input(f"{question} (Y/n): ").casefold()
     return reply in ("", "y")
 
 
@@ -131,7 +131,7 @@ def print_relevant_columns(row: pd.Series, config: configparser.ConfigParser) ->
     relevant_columns = ast.literal_eval(config["csv"]["relevant_columns"])
     if len(relevant_columns) == 0:
         relevant_columns = list(
-            i for i in list(row.index) if i.lower() != config["csv"]["label_column"]
+            i for i in list(row.index) if i.casefold() != config["csv"]["label_column"]
         )
 
     # Use the length of the longest column name to determine the width of the "name" column.
@@ -143,7 +143,7 @@ def print_relevant_columns(row: pd.Series, config: configparser.ConfigParser) ->
     line_length = int(config["general"]["name_value_seperator_width"])
 
     for name, value in row.items():
-        if name.lower() in [x.lower() for x in relevant_columns]:
+        if name.casefold() in [x.casefold() for x in relevant_columns]:
             # Check for empty row -> no further processing needed if empty
             if pd.isna(value):
                 print_value = "None"
@@ -271,7 +271,7 @@ def get_classification(categories: list) -> str:
     KeyboardInterrupt
         Raised when the user choose to cancel the classification
     """
-    lower_category_list = [x.lower() for x in categories]
+    lower_category_list = [x.casefold() for x in categories]
     category_integer_list = list(range(1, len(lower_category_list) + 1))
     category_hex_list = list(hex(n) for n in category_integer_list)
     print("\nThe following categories exist: ")
@@ -284,11 +284,11 @@ def get_classification(categories: list) -> str:
     while True:
         skip_invalid_print = False
         selected_category = input(
-            "\nPlease select one of the categories, you can use the name, a unique part of the"
-            " name or the corresponding number: "
+            "\nPlease select one of the categories, you can use the name, a unique part"
+            " of the name or the corresponding number: "
         )
         # Check if there is an exact match
-        if selected_category.lower() in lower_category_list:
+        if selected_category.casefold() in lower_category_list:
             clear_console()
             return resolve_correct_label_name(selected_category, categories)
         # Check if there is a partial match
@@ -303,11 +303,11 @@ def get_classification(categories: list) -> str:
             )
             skip_invalid_print = True
         # Check if the user entered the hardcoded value 'Umbuchung'
-        if selected_category.lower() == "umbuchung" or selected_category == "u":
+        if selected_category.casefold() == "umbuchung" or selected_category == "u":
             clear_console()
             return "Umbuchung"
         # Check if the user entered the exit command
-        if selected_category.lower() == "cancel input" or selected_category == "q":
+        if selected_category.casefold() == "cancel input" or selected_category == "q":
             raise KeyboardInterrupt("User canceled the input")
         # Check if the user entered a hex value (-> Id of a category)
         try:
@@ -413,7 +413,7 @@ def highlight_keywords(
     # Skip loop if there are no keywords
     if len(keywords) > 0:
         for word in text.split(" "):
-            if word.lower() in [x.lower() for x in keywords]:
+            if word.casefold() in [x.casefold() for x in keywords]:
                 text = text.replace(
                     word,
                     getattr(Fore, foreground_color.upper())
@@ -425,8 +425,8 @@ def highlight_keywords(
 
         # Add highlight end tag if the text only consists out of one and it is a keyword
         if len(text.split(" ")) == 1:
-            only_word = text.split(" ")[0].lower()
-            if only_word.endswith(tuple(x.lower() for x in keywords)):
+            only_word = text.split(" ")[0].casefold()
+            if only_word.endswith(tuple(x.casefold() for x in keywords)):
                 text += Style.RESET_ALL
 
     return text
