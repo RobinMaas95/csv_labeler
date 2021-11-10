@@ -284,8 +284,8 @@ def get_classification(categories: list) -> str:
     while True:
         skip_invalid_print = False
         selected_category = input(
-            "\nPlease select one of the categories, you can use type the complete name"
-            " or use the corresponding number: "
+            "\nPlease select one of the categories, you can use the name, a unique part of the"
+            " name or the corresponding number: "
         )
         # Check if there is an exact match
         if selected_category.lower() in lower_category_list:
