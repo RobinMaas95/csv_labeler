@@ -242,7 +242,8 @@ def main():
                 "\nInput was canceled, should the labels created so far be saved?"
             )
             break
-
+    clear_console()
+    print("Labeling of the CSV file completed")
     if save_changes:
         df.to_csv(  # pylint: disable = no-member
             csv_filepath, sep=config["csv"]["sep"], index=False
