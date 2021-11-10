@@ -12,6 +12,7 @@ import configparser
 from distutils import util
 
 import os
+import re
 import textwrap
 from pathlib import Path
 
@@ -280,21 +281,97 @@ def get_classification(categories: list) -> str:
     print("\tq)\tCancel Input")
 
     while True:
+        skip_invalid_print = False
         selected_category = input(
-            "\nPlease select one of the categories, you can use type the complete name"
-            " or use the corresponding number: "
+            "\nPlease select one of the categories, you can use the name, a unique part"
+            " of the name or the corresponding number: "
         )
+        # Check if there is an exact match
         if selected_category.lower() in lower_category_list:
             clear_console()
-            return selected_category
+            return resolve_correct_label_name(selected_category, categories)
+        # Check if there is a partial match
+        match_list = get_partial_match(selected_category, categories)
+        if len(match_list) == 1:
+            if confirm_prompt(f'Did you mean "{match_list[0]}"?'):
+                return match_list[0]
+        if len(match_list) > 1:
+            joined_list = ", ".join(f'"{w}"' for w in match_list)
+            print(
+                f"To many possible results ({joined_list}), please enter a unique value"
+            )
+            skip_invalid_print = True
+        # Check if the user entered the hardcoded value 'Umbuchung'
+        if selected_category.lower() == "umbuchung" or selected_category == "u":
+            clear_console()
+            return "Umbuchung"
+        # Check if the user entered the exit command
         if selected_category.lower() == "cancel input" or selected_category == "q":
             raise KeyboardInterrupt("User canceled the input")
-        if hex(int(selected_category, 16)) in category_hex_list:
-            selected_category = categories[int(selected_category, 16) - 1]
-            clear_console()
-            return selected_category
+        # Check if the user entered a hex value (-> Id of a category)
+        try:
+            if hex(int(selected_category, 16)) in category_hex_list:
+                selected_category = categories[int(selected_category, 16) - 1]
+                clear_console()
+                return selected_category
+        except ValueError:
+            pass
+        if not skip_invalid_print:
+            print("Invalid Input, please choose a valid category!")
 
-        print("Invalid Input, please choose a valid category!")
+
+def resolve_correct_label_name(label: str, label_list: list) -> str:
+    """
+    Resolves the correct (case sensitiv) spelling to the casefolded label
+
+
+    Parameters
+    ----------
+    label : str
+        Label case insensitiv spelling
+    label_list : list
+        List with all labels in the correct spelling
+
+    Returns
+    -------
+    str
+        Correct spelled label
+    """
+    match = next(
+        i for i, v in enumerate(label_list) if v.casefold() == label.casefold()
+    )
+    return label_list[match]
+
+
+def get_partial_match(substring: str, label_list: list) -> list:
+    """
+    Validates if there is a partial match of the substring in the label_list
+
+    Parameters
+    ----------
+    substring : str
+        Substring to be matched
+    label_list : list
+        List with all labels
+
+    Returns
+    -------
+    list
+        Lists with all labels that were matched
+    """
+    regex_pattern = re.compile(f".*{substring}*", re.IGNORECASE)
+    match_list = list(filter(regex_pattern.match, label_list))
+
+    exact_match = list(
+        x for x in (x.casefold() for x in match_list) if x == substring.casefold()
+    )
+    if len(exact_match) == 1:
+        match = resolve_correct_label_name(substring.casefold(), label_list)
+        return [match]
+
+    # apply a method to each entry in the list
+    match_list = [resolve_correct_label_name(item, label_list) for item in match_list]
+    return match_list
 
 
 def clear_console():
