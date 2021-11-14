@@ -224,6 +224,8 @@ def main():
         csv_filepath = get_csv_filepath()
 
     df = pd.read_csv(csv_filepath, sep=config["csv"]["sep"])
+    if not isinstance(df, pd.DataFrame):
+        raise ValueError("Error while reading the csv file")
 
     if bool(util.strtobool(config["development"]["testmode"])):
         # Development behavior, set values inside of config.ini
@@ -235,20 +237,19 @@ def main():
 
     for index, row in df.iterrows():
         try:
-            df.loc[  # pylint: disable = no-member
-                index, config["csv"]["label_column"]
-            ] = label_row(row, skip_labels, config)
+            df.loc[index, config["csv"]["label_column"]] = label_row(
+                row, skip_labels, config
+            )
         except KeyboardInterrupt:
             save_changes = confirm_prompt(
                 "\nInput was canceled, should the labels created so far be saved?"
             )
             break
+
     clear_console()
     print("Labeling of the CSV file completed")
     if save_changes:
-        df.to_csv(  # pylint: disable = no-member
-            csv_filepath, sep=config["csv"]["sep"], index=False
-        )
+        df.to_csv(csv_filepath, sep=config["csv"]["sep"], index=False)
 
 
 def get_classification(categories: list) -> str:
