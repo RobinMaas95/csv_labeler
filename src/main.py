@@ -279,6 +279,7 @@ def get_classification(categories: list) -> str:
     for idx, category in enumerate(categories):
         print(f"\t{idx+1:x})\t{category}")
 
+    print("\n\tu)\tUmbuchung")
     print("\tq)\tCancel Input")
 
     while True:
