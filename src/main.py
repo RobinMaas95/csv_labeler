@@ -323,7 +323,7 @@ def get_classification(categories: list) -> str:
 
 def resolve_correct_label_name(label: str, label_list: list) -> str:
     """
-    Resolves the correct (case sensitiv) spelling to the casefolded label
+        Resolves the correct (case sensitive) spelling to the casefolded label
 
 
     Parameters
@@ -377,7 +377,7 @@ def get_partial_match(substring: str, label_list: list) -> list:
 
 def clear_console():
     """
-    Clears consol output
+    Clears console output
     """
     os.system("cls||clear")
 
