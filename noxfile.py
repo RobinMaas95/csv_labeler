@@ -98,7 +98,7 @@ def pytest(session):
         "--capture=sys",
         "--junitxml=pytest-report.xml",
         "--cov=src",
-        "--cov-fail-under=25",
+        "--cov-fail-under=36",
         "tests/",
     )  # in order to see output to stdout set: --capture=tee-sys
 
