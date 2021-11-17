@@ -1,3 +1,4 @@
+"""
  Copyright 2021 Robin Maasjosthusmann. All rights reserved.
  Use of this source code is governed by a BSD-style
  license that can be found in the LICENSE file.
@@ -33,3 +34,26 @@ def test_confirm_prompt(monkeypatch, mocker, capsys, user_input, expected_result
         main.confirm_prompt("test")
         captured = capsys.readouterr()
         assert captured.out.strip() == expected_result
+
+
+@Parametrization.parameters("user_input")
+@Parametrization.case("existing_path", True)
+@Parametrization.case("invalid_path", False)
+def test_get_csv_input(monkeypatch, capsys, tmp_path, mocker, user_input):
+    """
+    Tests a valid filepath is recognized.
+    For this a temporary folder ist created (pytest build-in) and
+    inside this path a file is generated.
+    """
+    filepath = tmp_path / ("temp." + "test.csv")
+    filepath.write_text("Test123", encoding="utf-8")
+    if user_input:
+        monkeypatch.setattr("builtins.input", lambda _: str(filepath))
+        assert main.get_csv_filepath() == filepath
+    else:
+        mocker.patch(
+            "builtins.input", side_effect=["/dummy/path/file.csv", str(filepath)]
+        )
+        main.get_csv_filepath()
+        captured = capsys.readouterr()
+        assert captured.out.strip() == "No valid file found"
