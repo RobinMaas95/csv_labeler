@@ -4,6 +4,7 @@
  license that can be found in the LICENSE file.
 """
 
+import pandas as pd
 from parametrization import Parametrization
 
 import src.main as main
@@ -57,3 +58,48 @@ def test_get_csv_input(monkeypatch, capsys, tmp_path, mocker, user_input):
         main.get_csv_filepath()
         captured = capsys.readouterr()
         assert captured.out.strip() == "No valid file found"
+
+
+@Parametrization.parameters("dataframe", "column", "user_input", "expected_result")
+@Parametrization.case(
+    "with_labels_y",
+    pd.DataFrame(data={"labels": [None, "test", None]}),
+    "labels",
+    "Y",
+    True,
+)
+@Parametrization.case(
+    "with_labels_n",
+    pd.DataFrame(data={"labels": [None, "test", None]}),
+    "labels",
+    "N",
+    False,
+)
+@Parametrization.case(
+    "no_labels",
+    pd.DataFrame(data={"labels": [None, None, None]}),
+    "labels",
+    "",
+    False,
+)
+def test_handle_existing_labels(
+    monkeypatch,
+    dataframe,
+    column,
+    user_input,
+    expected_result,
+):
+    monkeypatch.setattr("builtins.input", lambda _: user_input)
+    result = main.handle_existing_labels(dataframe, column)
+    assert result == expected_result
+
+
+if __name__ == "__main__":
+    test_handle_existing_labels(
+        pd.DataFrame(data={"labels": [None, "test", None]}),
+        "labels",
+        "Y",
+        "Existing labels detected! Do you want to keep the existing labels (if you"
+        " choose No, all existing labels will be deleted!)",
+        True,
+    )
