@@ -9,11 +9,10 @@ A simple tool for labeling your csv files
 
 import ast
 import configparser
-from distutils import util
-
 import os
 import re
 import textwrap
+from distutils import util
 from pathlib import Path
 
 import pandas as pd
@@ -37,6 +36,7 @@ def confirm_prompt(question: str) -> bool:
     """
     reply = None
     valid_inputs = ("", "y", "n")
+
     while reply not in valid_inputs:
         if reply is not None:
             print('Please enter a valid value ("Y/y" or Enter for Yes, "N/n" for No)')
@@ -99,14 +99,14 @@ def handle_existing_labels(df: pd.DataFrame, label_column: str) -> bool:
         True if user wants to skip (ignore) already labeled rows, False if
         the user wants to relable them
     """
-    skip_labels = False
+    keep_label = False
     if detect_labels(df, label_column):
-        skip_labels = not confirm_prompt(
-            "Existing labels detected! Do you want to overwrite existing labels (if you"
-            " choose No, all entries that already contain a label will be skipped)"
+        keep_label = confirm_prompt(
+            "Existing labels detected! Do you want to keep the existing labels (if you"
+            " choose No, all existing labels will be deleted!)"
         )
 
-    return skip_labels
+    return keep_label
 
 
 def print_relevant_columns(row: pd.Series, config: configparser.ConfigParser) -> None:
@@ -181,7 +181,7 @@ def print_relevant_columns(row: pd.Series, config: configparser.ConfigParser) ->
 
 def label_row(
     row: pd.Series,
-    skip_labels: bool,
+    keep_label: bool,
     config: configparser.ConfigParser,
 ) -> str:
     """
@@ -192,8 +192,8 @@ def label_row(
     ----------
     row : pd.Series
         Row of the pandas Dataframe that contains the csv file
-    skip_labels : bool
-        Should rows which already have a label be skipped?
+    keep_label : bool
+        Should existing labels be retained
     config : configparser.ConfigParser
         ConfigParser with all information from the config.ini
 
@@ -202,7 +202,7 @@ def label_row(
     str
         Selected Label
     """
-    if skip_labels and not pd.isna(row[config["csv"]["label_column"]]):
+    if keep_label and not pd.isna(row[config["csv"]["label_column"]]):
         return row[config["csv"]["label_column"]]
     print_relevant_columns(row, config)
     return get_classification(ast.literal_eval(config["classification"]["labels"]))
@@ -229,16 +229,16 @@ def main():
 
     if bool(util.strtobool(config["development"]["testmode"])):
         # Development behavior, set values inside of config.ini
-        skip_labels = bool(util.strtobool(config["development"]["skip_labels"]))
+        keep_label = bool(util.strtobool(config["development"]["skip_labels"]))
     else:
         # Normal behavior
-        skip_labels = handle_existing_labels(df, config["csv"]["label_column"])
+        keep_label = handle_existing_labels(df, config["csv"]["label_column"])
     save_changes = True
 
     for index, row in df.iterrows():
         try:
             df.loc[index, config["csv"]["label_column"]] = label_row(
-                row, skip_labels, config
+                row, keep_label, config
             )
         except KeyboardInterrupt:
             save_changes = confirm_prompt(
