@@ -66,7 +66,7 @@ def test_matching_keyword_end_sentence():
     sentence = "This is my test sentence with multiple keywords"
     expected_sentence = (
         "This\x1b[0m is\x1b[0m my\x1b[0m test\x1b[0m sentence\x1b[0m with\x1b[0m"
-        " multiple \x1b[30m\x1b[43mkeywords"
+        " multiple \x1b[30m\x1b[43mkeywords\x1b[0m"
     )
     highlighted_sentence = highlight_keywords(sentence, ["keywords"])
     assert expected_sentence == highlighted_sentence
