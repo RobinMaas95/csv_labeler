@@ -413,13 +413,19 @@ def highlight_keywords(
     """
     # Skip loop if there are no keywords
     if len(keywords) > 0:
-        for word in text.split(" "):
+        words_in_text = text.split(" ")
+        for idx, word in enumerate(words_in_text):
             if word.casefold() in [x.casefold() for x in keywords]:
+                highlight_stopper = (
+                    Style.RESET_ALL if idx == len(words_in_text) - 1 else ""
+                )
+
                 text = text.replace(
                     word,
                     getattr(Fore, foreground_color.upper())
                     + getattr(Back, background_color.upper())
-                    + word,
+                    + word
+                    + highlight_stopper,
                 )
             else:
                 text = text.replace(f" {word}", Style.RESET_ALL + f" {word}")
