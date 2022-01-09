@@ -6,8 +6,11 @@
 
 import pandas as pd
 from parametrization import Parametrization
-
+from pytest import MonkeyPatch, CaptureFixture
+from pytest_mock import MockerFixture
 from src import main
+from typing import Union
+from pathlib import Path
 
 
 @Parametrization.parameters("user_input", "expected_result")
@@ -21,7 +24,13 @@ from src import main
     ["z", "Y"],
     'Please enter a valid value ("Y/y" or Enter for Yes, "N/n" for No)',
 )
-def test_confirm_prompt(monkeypatch, mocker, capsys, user_input, expected_result):
+def test_confirm_prompt(
+    monkeypatch: MonkeyPatch,
+    mocker: MockerFixture,
+    capsys: CaptureFixture,
+    user_input: Union[str, list],
+    expected_result: str,
+):
     """
     Tests if the confirm_prompt returns the expected results.
     Tests for all valid positive and negative inputs. Also tests if the loop
@@ -40,7 +49,13 @@ def test_confirm_prompt(monkeypatch, mocker, capsys, user_input, expected_result
 @Parametrization.parameters("user_input")
 @Parametrization.case("existing_path", True)
 @Parametrization.case("invalid_path", False)
-def test_get_csv_input(monkeypatch, capsys, tmp_path, mocker, user_input):
+def test_get_csv_input(
+    monkeypatch: MonkeyPatch,
+    capsys: CaptureFixture,
+    tmp_path: Path,
+    mocker: MockerFixture,
+    user_input: bool,
+):
     """
     Tests a valid filepath is recognized.
     For this a temporary folder ist created (pytest build-in) and
@@ -83,12 +98,13 @@ def test_get_csv_input(monkeypatch, capsys, tmp_path, mocker, user_input):
     False,
 )
 def test_handle_existing_labels(
-    monkeypatch,
-    dataframe,
-    column,
-    user_input,
-    expected_result,
+    monkeypatch: MonkeyPatch,
+    dataframe: pd.DataFrame,
+    column: str,
+    user_input: str,
+    expected_result: bool,
 ):
+    """Test if the method handle_existing_labels returns the expected result."""
     monkeypatch.setattr("builtins.input", lambda _: user_input)
     result = main.handle_existing_labels(dataframe, column)
     assert result == expected_result
