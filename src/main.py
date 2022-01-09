@@ -334,7 +334,7 @@ def resolve_correct_label_name(label: str, label_list: list) -> str:
     Parameters
     ----------
     label : str
-        Label case insensitiv spelling
+        Label case insensitive spelling
     label_list : list
         List with all labels in the correct spelling
 
