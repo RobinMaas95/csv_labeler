@@ -7,7 +7,7 @@
 import pandas as pd
 from parametrization import Parametrization
 
-import src.main as main
+from src import main
 
 
 @Parametrization.parameters("user_input", "expected_result")
