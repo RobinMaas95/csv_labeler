@@ -288,6 +288,10 @@ def get_classification(categories: list) -> str:
             "\nPlease select one of the categories, you can use the name, a unique part"
             " of the name or the corresponding number: "
         )
+        # Check if the input was empty, if so, ask again
+        if not selected_category:
+            continue
+
         # Check if there is an exact match
         if selected_category.casefold() in lower_category_list:
             clear_console()
