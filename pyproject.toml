@@ -1,8 +1,8 @@
 [tool.poetry]
 authors = ["Robin Maasjosthusmann <robin@maasjosthusmann.de>"]
+description = "A simple tool for labeling your csv files"
 name = "csv_labeler"
 version = "0.1.0"
-description = ""
 
 [tool.poetry.scripts]
 csv_labeler = "csv_labeler.main:main"
