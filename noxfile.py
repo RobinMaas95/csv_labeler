@@ -17,7 +17,7 @@ nox.options.sessions = (
     "pytest",
     "coverage",
 )
-locations = "src", "tests", "noxfile.py"
+locations = "csv_labeler", "tests", "noxfile.py"
 
 
 @nox.session(python=False)
@@ -73,7 +73,7 @@ def mypy(session):
 
 @nox.session(python=False)
 def pytype(session):
-    session.run("pytype", "--config=pytype.cfg", "src")
+    session.run("pytype", "--config=pytype.cfg", "csv_labeler")
 
 
 @nox.session(python=False)
@@ -97,7 +97,7 @@ def pytest(session):
         "--timeout=15",
         "--capture=sys",
         "--junitxml=pytest-report.xml",
-        "--cov=src",
+        "--cov=csv_labeler",
         "--cov-fail-under=36",
         "tests/",
     )  # in order to see output to stdout set: --capture=tee-sys

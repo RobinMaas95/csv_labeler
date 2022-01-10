@@ -4,7 +4,7 @@
  license that can be found in the LICENSE file.
 """
 
-from src.main import get_partial_match
+from csv_labeler.main import get_partial_match
 
 
 def test_no_matching_label():

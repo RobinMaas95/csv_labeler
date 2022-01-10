@@ -5,7 +5,7 @@ Tests for csv labeler
 import pandas as pd
 from parametrization import Parametrization
 
-from src import main
+from csv_labeler import main
 
 
 @Parametrization.parameters("dataframe", "column", "expected_result")

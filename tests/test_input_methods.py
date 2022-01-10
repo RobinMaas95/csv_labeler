@@ -8,7 +8,7 @@ import pandas as pd
 from parametrization import Parametrization
 from pytest import MonkeyPatch, CaptureFixture
 from pytest_mock import MockerFixture
-from src import main
+from csv_labeler import main
 from typing import Union
 from pathlib import Path
 

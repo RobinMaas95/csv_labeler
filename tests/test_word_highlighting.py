@@ -6,7 +6,7 @@
  This test maybe only pass on mac/unix as the expected sentences are based on a mac system.
 """
 
-from src.main import highlight_keywords
+from csv_labeler.main import highlight_keywords
 
 
 def test_no_matching_keywords():

@@ -1,8 +1,11 @@
 [tool.poetry]
+authors = ["Robin Maasjosthusmann <robin@maasjosthusmann.de>"]
 name = "csv_labeler"
 version = "0.1.0"
 description = ""
-authors = ["Robin Maasjosthusmann <robin@maasjosthusmann.de>"]
+
+[tool.poetry.scripts]
+csv_labeler = "csv_labeler.main:main"
 
 [tool.poetry.dependencies]
 python = ">=3.7.1,<3.10"
