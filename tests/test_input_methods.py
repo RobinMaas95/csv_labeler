@@ -4,13 +4,15 @@
  license that can be found in the LICENSE file.
 """
 
-import pandas as pd
-from parametrization import Parametrization
-from pytest import MonkeyPatch, CaptureFixture
-from pytest_mock import MockerFixture
-from csv_labeler import main
-from typing import Union
 from pathlib import Path
+from typing import Union
+
+import pandas as pd
+import pytest
+from csv_labeler import main
+from parametrization import Parametrization
+from pytest import CaptureFixture, MonkeyPatch
+from pytest_mock import MockerFixture
 
 
 @Parametrization.parameters("user_input", "expected_result")
@@ -44,6 +46,64 @@ def test_confirm_prompt(
         main.confirm_prompt("test")
         captured = capsys.readouterr()
         assert captured.out.strip() == expected_result
+
+
+@Parametrization.parameters(
+    "categories", "category_output", "user_input", "expected_output", "expected_result"
+)
+@Parametrization.default_parameters(
+    categories=["Shopping", "Food", "Freetime", "Car"],
+    category_output=(
+        "The following categories exist:"
+        " \n\t1)\tShopping\n\t2)\tFood\n\t3)\tFreetime\n\t4)\tCar\n\n\tu)\tUmbuchung\n\tq)\tCancel"
+        " Input\n"
+    ),
+)
+@Parametrization.case(
+    "umbuchung",
+    user_input="u",
+    expected_output=[],
+    expected_result="Umbuchung",
+)
+@Parametrization.case(
+    "cancel_input", user_input="q", expected_output=[], expected_result=""
+)
+@Parametrization.case(
+    "empty_input",
+    user_input=["", "u"],
+    expected_output=["\nPlease select a category"],
+    expected_result="Umbuchung",
+)
+def test_get_classification(
+    monkeypatch: MonkeyPatch,
+    mocker: MockerFixture,
+    capsys: CaptureFixture,
+    categories: list,
+    category_output: str,
+    user_input: Union[str, list],
+    expected_output: list,
+    expected_result: str,
+):
+    """
+    Tests if the get_classification method returns the expected results.
+    """
+    if isinstance(user_input, str):
+        monkeypatch.setattr("builtins.input", lambda _: user_input)
+
+        if user_input == "q":
+            # Test if the exception to end the input loop is raised
+            with pytest.raises(KeyboardInterrupt, match="User canceled the input"):
+                main.get_classification(categories)
+        else:
+            result = main.get_classification(categories)
+            captured = capsys.readouterr()
+            assert captured.out.strip() == category_output.strip()
+            assert result == expected_result
+    else:
+        mocker.patch("builtins.input", side_effect=user_input)
+        main.get_classification(categories)
+        captured = capsys.readouterr()
+        assert captured.out.strip() == category_output + "".join(expected_output)
 
 
 @Parametrization.parameters("user_input")

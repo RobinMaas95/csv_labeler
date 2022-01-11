@@ -292,23 +292,13 @@ def get_classification(categories: list) -> str:
         )
         # Check if the input was empty, if so, ask again
         if not selected_category:
+            print("\nPlease select a category")
             continue
 
         # Check if there is an exact match
         if selected_category.casefold() in lower_category_list:
             clear_console()
             return resolve_correct_label_name(selected_category, categories)
-        # Check if there is a partial match
-        match_list = get_partial_match(selected_category, categories)
-        if len(match_list) == 1:
-            if confirm_prompt(f'Did you mean "{match_list[0]}"?'):
-                return match_list[0]
-        if len(match_list) > 1:
-            joined_list = ", ".join(f'"{w}"' for w in match_list)
-            print(
-                f"To many possible results ({joined_list}), please enter a unique value"
-            )
-            skip_invalid_print = True
         # Check if the user entered the hardcoded value 'Umbuchung'
         if selected_category.casefold() == "umbuchung" or selected_category == "u":
             clear_console()
@@ -324,6 +314,18 @@ def get_classification(categories: list) -> str:
                 return selected_category
         except ValueError:
             pass
+
+        # Check if there is a partial match
+        match_list = get_partial_match(selected_category, categories)
+        if len(match_list) == 1:
+            if confirm_prompt(f'Did you mean "{match_list[0]}"?'):
+                return match_list[0]
+        if len(match_list) > 1:
+            joined_list = ", ".join(f'"{w}"' for w in match_list)
+            print(
+                f"To many possible results ({joined_list}), please enter a unique value"
+            )
+            skip_invalid_print = True
         if not skip_invalid_print:
             print("Invalid Input, please choose a valid category!")
 
