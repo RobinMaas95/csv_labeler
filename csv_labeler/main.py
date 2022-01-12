@@ -14,9 +14,13 @@ import re
 import textwrap
 from distutils import util
 from pathlib import Path
-
+from loguru import logger
+import sys
 import pandas as pd
 from colorama import Back, Fore, Style
+
+logger.remove()
+logger.add(sys.stderr, format="{message}", level="INFO")
 
 
 def confirm_prompt(question: str) -> bool:
@@ -313,7 +317,7 @@ def get_classification(categories: list) -> str:
                 clear_console()
                 return selected_category
         except ValueError:
-            pass
+            logger.debug("User input was not a hex value")
 
         # Check if there is a partial match
         match_list = get_partial_match(selected_category, categories)
