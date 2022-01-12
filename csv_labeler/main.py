@@ -373,7 +373,9 @@ def get_partial_match(substring: str, label_list: list) -> list:
     list
         Lists with all labels that were matched
     """
-    regex_pattern = re.compile(f".*{substring}*", re.IGNORECASE)
+    regex_pattern = re.compile(
+        f"{substring}", re.IGNORECASE
+    )  # todo: this fixes the problem with too many matches, but it also prevents matches when the partial match is not at the beginning of the substring
     match_list = list(filter(regex_pattern.match, label_list))
 
     exact_match = list(
