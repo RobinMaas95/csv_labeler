@@ -11,8 +11,22 @@ import pandas as pd
 import pytest
 from csv_labeler import main
 from parametrization import Parametrization
-from pytest import CaptureFixture, MonkeyPatch
+from pytest import CaptureFixture, MonkeyPatch, LogCaptureFixture
 from pytest_mock import MockerFixture
+from loguru import logger
+from _pytest.logging import caplog as _caplog  # noqa: F401
+import logging
+
+
+@pytest.fixture
+def caplog(_caplog):  # noqa: F811
+    class PropogateHandler(logging.Handler):
+        def emit(self, record):
+            logging.getLogger(record.name).handle(record)
+
+    handler_id = logger.add(PropogateHandler(), format="{message}")
+    yield _caplog
+    logger.remove(handler_id)
 
 
 @Parametrization.parameters("user_input", "expected_result")
@@ -49,15 +63,21 @@ def test_confirm_prompt(
 
 
 @Parametrization.parameters(
-    "categories", "category_output", "user_input", "expected_output", "expected_result"
+    "categories",
+    "category_output",
+    "user_input",
+    "expected_output",
+    "listen_logger",
+    "expected_result",
 )
 @Parametrization.default_parameters(
-    categories=["Shopping", "Food", "Freetime", "Car"],
+    categories=["Shopping", "Food", "Shoes", "Car"],
     category_output=(
         "The following categories exist:"
-        " \n\t1)\tShopping\n\t2)\tFood\n\t3)\tFreetime\n\t4)\tCar\n\n\tu)\tUmbuchung\n\tq)\tCancel"
+        " \n\t1)\tShopping\n\t2)\tFood\n\t3)\tShoes\n\t4)\tCar\n\n\tu)\tUmbuchung\n\tq)\tCancel"
         " Input\n"
     ),
+    listen_logger=False,
 )
 @Parametrization.case(
     "umbuchung",
@@ -74,13 +94,69 @@ def test_confirm_prompt(
     expected_output=["\nPlease select a category"],
     expected_result="Umbuchung",
 )
+@Parametrization.case(
+    "complete_match_excact",
+    user_input="Shopping",
+    expected_output=[],
+    expected_result="Shopping",
+)
+@Parametrization.case(
+    "complete_match_casefold",
+    user_input="sHoPpInG",
+    expected_output=[],
+    expected_result="Shopping",
+)
+@Parametrization.case(
+    "hex_match_start_range",
+    user_input="1",
+    expected_output=[],
+    expected_result="Shopping",
+)
+@Parametrization.case(
+    "hex_match_end_range",
+    user_input="4",
+    expected_output=[],
+    expected_result="Car",
+)
+@Parametrization.case(
+    "hex_match_out_of_range",
+    user_input=["10", "1"],
+    expected_output=["Invalid Input, please choose a valid category!"],
+    expected_result="Shopping",
+)
+@Parametrization.case(
+    "hex_match_value_error",
+    user_input=["bla", "1"],
+    expected_output=[
+        "User input was not a hex value",
+        "Invalid Input, please choose a valid category!",
+    ],
+    listen_logger=True,
+    expected_result="Shopping",
+)
+@Parametrization.case(
+    "partial_match_one",
+    user_input=["Shop", "Y"],
+    expected_output=[""],
+    expected_result="Shopping",
+)
+@Parametrization.case(
+    "partial_match_multiple",
+    user_input=["Sh", "1"],
+    expected_output=[
+        'To many possible results ("Shopping", "Shoes"), please enter a unique value'
+    ],
+    expected_result="Shopping",
+)
 def test_get_classification(
     monkeypatch: MonkeyPatch,
     mocker: MockerFixture,
     capsys: CaptureFixture,
+    caplog: LogCaptureFixture,
     categories: list,
     category_output: str,
     user_input: Union[str, list],
+    listen_logger: bool,
     expected_output: list,
     expected_result: str,
 ):
@@ -102,8 +178,15 @@ def test_get_classification(
     else:
         mocker.patch("builtins.input", side_effect=user_input)
         main.get_classification(categories)
+        if listen_logger:
+            log_message = caplog.messages[0]
+            assert log_message == expected_output[0]
+            expected_output.pop(0)
+
         captured = capsys.readouterr()
-        assert captured.out.strip() == category_output + "".join(expected_output)
+        assert (
+            captured.out.strip() == (category_output + "".join(expected_output)).strip()
+        )
 
 
 @Parametrization.parameters("user_input")
