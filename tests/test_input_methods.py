@@ -4,23 +4,35 @@
  license that can be found in the LICENSE file.
 """
 
+import logging
 from pathlib import Path
 from typing import Union
 
 import pandas as pd
 import pytest
-from csv_labeler import main
-from parametrization import Parametrization
-from pytest import CaptureFixture, MonkeyPatch, LogCaptureFixture
-from pytest_mock import MockerFixture
+from _pytest.logging import (  # pylint: disable=unused-import; # noqa: F401
+    caplog as _caplog,
+)
 from loguru import logger
-from _pytest.logging import caplog as _caplog  # noqa: F401
-import logging
+from parametrization import Parametrization
+from pytest import CaptureFixture, LogCaptureFixture, MonkeyPatch
+from pytest_mock import MockerFixture
+
+from csv_labeler import main
 
 
 @pytest.fixture
 def caplog(_caplog):  # noqa: F811
+    """
+    Fixture to capture logs by loguru.
+
+    See:
+    loguru.readthedocs.io/en/stable/resources/migration.html#making-things-work-with-pytest-and-caplog
+    """
+
     class PropogateHandler(logging.Handler):
+        """Emit logger record."""
+
         def emit(self, record):
             logging.getLogger(record.name).handle(record)
 
@@ -134,25 +146,11 @@ def test_confirm_prompt(
     listen_logger=True,
     expected_result="Shopping",
 )
-@Parametrization.case(
-    "partial_match_one",
-    user_input=["Shop", "Y"],
-    expected_output=[""],
-    expected_result="Shopping",
-)
-@Parametrization.case(
-    "partial_match_multiple",
-    user_input=["Sh", "1"],
-    expected_output=[
-        'To many possible results ("Shopping", "Shoes"), please enter a unique value'
-    ],
-    expected_result="Shopping",
-)
 def test_get_classification(
     monkeypatch: MonkeyPatch,
     mocker: MockerFixture,
-    capsys: CaptureFixture,
-    caplog: LogCaptureFixture,
+    capsys: CaptureFixture,  # noqa: W0612
+    caplog: LogCaptureFixture,  # pylint: disable=redefined-outer-name
     categories: list,
     category_output: str,
     user_input: Union[str, list],

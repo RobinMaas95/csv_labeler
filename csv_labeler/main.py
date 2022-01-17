@@ -10,14 +10,17 @@ A simple tool for labeling your csv files
 import ast
 import configparser
 import os
-import re
+import readline
+import sys
 import textwrap
 from distutils import util
 from pathlib import Path
-from loguru import logger
-import sys
+
 import pandas as pd
 from colorama import Back, Fore, Style
+from loguru import logger
+
+from csv_labeler import tab_completer
 
 logger.remove()
 logger.add(sys.stderr, format="{message}", level="INFO")
@@ -288,11 +291,18 @@ def get_classification(categories: list) -> str:
     print("\n\tu)\tUmbuchung")
     print("\tq)\tCancel Input")
 
+    # Setup auto-completion via tab
+    completer = tab_completer.TabCompleter()
+    completer.create_list_completer(categories)
+    readline.set_completer_delims("\t")
+    readline.parse_and_bind("tab: complete")
+    readline.set_completer(completer.list_completer)
+
     while True:
         skip_invalid_print = False
         selected_category = input(
-            "\nPlease select one of the categories, you can use the name, a unique part"
-            " of the name or the corresponding number: "
+            "\nPlease select one of the categories, you can use the name (autocomplete"
+            " via tab) the corresponding number: "
         )
         # Check if the input was empty, if so, ask again
         if not selected_category:
@@ -319,17 +329,6 @@ def get_classification(categories: list) -> str:
         except ValueError:
             logger.debug("User input was not a hex value")
 
-        # Check if there is a partial match
-        match_list = get_partial_match(selected_category, categories)
-        if len(match_list) == 1:
-            if confirm_prompt(f'Did you mean "{match_list[0]}"?'):
-                return match_list[0]
-        if len(match_list) > 1:
-            joined_list = ", ".join(f'"{w}"' for w in match_list)
-            print(
-                f"To many possible results ({joined_list}), please enter a unique value"
-            )
-            skip_invalid_print = True
         if not skip_invalid_print:
             print("Invalid Input, please choose a valid category!")
 
@@ -355,39 +354,6 @@ def resolve_correct_label_name(label: str, label_list: list) -> str:
         i for i, v in enumerate(label_list) if v.casefold() == label.casefold()
     )
     return label_list[match]
-
-
-def get_partial_match(substring: str, label_list: list) -> list:
-    """
-    Validates if there is a partial match of the substring in the label_list
-
-    Parameters
-    ----------
-    substring : str
-        Substring to be matched
-    label_list : list
-        List with all labels
-
-    Returns
-    -------
-    list
-        Lists with all labels that were matched
-    """
-    regex_pattern = re.compile(
-        f"{substring}", re.IGNORECASE
-    )  # todo: this fixes the problem with too many matches, but it also prevents matches when the partial match is not at the beginning of the substring
-    match_list = list(filter(regex_pattern.match, label_list))
-
-    exact_match = list(
-        x for x in (x.casefold() for x in match_list) if x == substring.casefold()
-    )
-    if len(exact_match) == 1:
-        match = resolve_correct_label_name(substring.casefold(), label_list)
-        return [match]
-
-    # apply a method to each entry in the list
-    match_list = [resolve_correct_label_name(item, label_list) for item in match_list]
-    return match_list
 
 
 def clear_console():
