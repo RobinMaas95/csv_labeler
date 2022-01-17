@@ -6,6 +6,7 @@ version = "0.1.0"
 
 [tool.poetry.scripts]
 csv_labeler = "csv_labeler.main:main"
+tab = "csv_labeler.tab_completer:main"
 
 [tool.poetry.dependencies]
 colorama = "^0.4.4"
@@ -29,6 +30,7 @@ pytest-mock = "^3.6.1"
 pytest-timeout = "^2.0.1"
 pytype = "^2021.10.25"
 safety = "^1.10.3"
+isort = "^5.10.1"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
