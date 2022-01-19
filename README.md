@@ -20,6 +20,9 @@ poetry install
 poetry run csv_labeler
 ```
 
+Note: csv_labeler uses [fast_autocomplete](https://pypi.org/project/fast-autocomplete/) for autocompletion
+of the categories. If the default settings do not work as expected for your categories, you can adjust them using ```config.ini```. The relevant attributes for [fast_autocomplete](https://pypi.org/project/fast-autocomplete/) are in the section fast_autocomplete. For a more detailed description of these parameters, see the pypi page of [fast_autocomplete](https://pypi.org/project/fast-autocomplete/).
+
 ## Run tests
 
 ```sh
