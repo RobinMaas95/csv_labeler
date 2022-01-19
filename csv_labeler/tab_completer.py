@@ -11,7 +11,7 @@ size should be longer than list of words)
 import glob
 import os
 import readline
-
+import configparser
 from fast_autocomplete import AutoComplete
 
 
@@ -53,6 +53,8 @@ class TabCompleter:
         a closure is used to create the listCompleter function with a list to complete
         from.
         """
+        config = configparser.ConfigParser()
+        config.read("config.ini")
 
         def list_completer(text, state):
             line = readline.get_line_buffer()
@@ -62,7 +64,11 @@ class TabCompleter:
 
             words = {i: {} for i in word_list}
             autocomplete = AutoComplete(words=words)
-            result = autocomplete.search(word=text, max_cost=3, size=20)
+            result = autocomplete.search(
+                word=text,
+                max_cost=int(config["fast_autocomplete"]["max_cost"]),
+                size=int(config["fast_autocomplete"]["size"]),
+            )
             return [c[0] for c in result][state]
 
         self.list_completer = list_completer
