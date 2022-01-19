@@ -55,15 +55,25 @@ def get_csv_filepath() -> Path:
     """
     Asks the user for the path to the csv file
 
+    Raises
+    ------
+    KeyboardInterrupt
+        If the user enters "q" or "Q"
     Returns
     -------
     pathlib.Path
         Path to csv file
     """
     while True:
+        readline.set_completer_delims("\t")
+        readline.parse_and_bind("tab: complete")
+        completer = tab_completer.TabCompleter()
+        readline.set_completer(completer.path_completer)
         csv_filepath = Path(input("Please enter the path of the csv file: "))
         if csv_filepath.is_file():
             break
+        if str(csv_filepath).casefold() == "q":
+            raise KeyboardInterrupt("User canceled the input")
         print("No valid file found")
 
     return csv_filepath
@@ -228,8 +238,12 @@ def main():
         csv_filepath = config["development"]["csv_file"]
     else:
         # Normal behavior
-        csv_filepath = get_csv_filepath()
-
+        try:
+            csv_filepath = get_csv_filepath()
+        except KeyboardInterrupt:
+            clear_console()
+            print("Exiting...")
+            sys.exit(0)
     df = pd.read_csv(csv_filepath, sep=config["csv"]["sep"])
     if not isinstance(df, pd.DataFrame):
         raise ValueError("Error while reading the csv file")
